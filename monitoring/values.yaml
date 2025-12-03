@@ -1,0 +1,31 @@
+# Configuração minimalista do kube-prometheus-stack
+# Foco: métricas de pods, dashboard Grafana
+
+prometheus:
+  prometheusSpec:
+    retention: 24h
+    resources:
+      requests:
+        memory: 400Mi
+      limits:
+        memory: 800Mi
+
+grafana:
+  adminPassword: admin
+  service:
+    type: NodePort
+    nodePort: 30080
+
+# Desabilitar componentes não necessários
+alertmanager:
+  enabled: false
+
+# Métricas essenciais
+kubelet:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true

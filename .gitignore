@@ -1,0 +1,22 @@
+# Resultados de experimentos (podem regenerar)
+experiments/results/
+dashboards/screenshots/*.png
+
+# Dados temporários
+*.log
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
