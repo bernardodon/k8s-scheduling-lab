@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 POLICY=$1
 
 if [ -z "$POLICY" ]; then
@@ -10,11 +13,18 @@ if [ -z "$POLICY" ]; then
     echo "  default"
     echo "  spreading"
     echo "  anti-affinity"
-    echo "  pod-affinity"
     exit 1
 fi
 
-POLICY_DIR="../scheduling-policies/$POLICY"
+case "$POLICY" in
+    default) POLICY_DIR="$ROOT_DIR/scheduling-policies/1-default" ;;
+    spreading) POLICY_DIR="$ROOT_DIR/scheduling-policies/2-spreading" ;;
+    anti-affinity) POLICY_DIR="$ROOT_DIR/scheduling-policies/3-anti-affinity" ;;
+    *)
+        echo "❌ Política '$POLICY' não reconhecida. Use: default | spreading | anti-affinity"
+        exit 1
+        ;;
+esac
 
 if [ ! -d "$POLICY_DIR" ]; then
     echo "❌ Política '$POLICY' não encontrada em $POLICY_DIR"
@@ -32,7 +42,7 @@ sleep 3
 
 # Aplicar ConfigMap
 echo "📝 Aplicando ConfigMap..."
-kubectl apply -f ../workloads/nginx-test/configmap.yaml
+kubectl apply -f "$ROOT_DIR/workloads/nginx-test/configmap.yaml"
 
 # Substituir variáveis no ConfigMap
 echo "🔧 Injetando variáveis no HTML..."
@@ -42,7 +52,7 @@ kubectl get configmap nginx-test-html -o yaml | \
 
 # Aplicar política
 echo "🚀 Aplicando deployment com política $POLICY..."
-kubectl apply -f $POLICY_DIR/deployment.yaml
+kubectl apply -f "$POLICY_DIR/deployment.yaml"
 
 # Aguardar pods
 echo "⏳ Aguardando pods ficarem Ready..."

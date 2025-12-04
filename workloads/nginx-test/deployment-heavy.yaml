@@ -4,7 +4,6 @@ metadata:
   name: nginx-test
   labels:
     app: nginx-test
-    policy: pod-affinity
 spec:
   replicas: 20
   selector:
@@ -14,21 +13,8 @@ spec:
     metadata:
       labels:
         app: nginx-test
-        policy: pod-affinity
+        policy: POLICY_NAME
     spec:
-      # Pod Affinity SOFT - prefere nodes com pods do mesmo app
-      # Simula comportamento de binpacking
-      affinity:
-        podAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  app: nginx-test
-                  policy: pod-affinity
-              topologyKey: kubernetes.io/hostname
-
       containers:
       - name: nginx
         image: nginx:alpine
@@ -36,11 +22,11 @@ spec:
         - containerPort: 80
         resources:
           requests:
-            cpu: 50m
-            memory: 64Mi
+            cpu: "500m"
+            memory: "128Mi"
           limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: "500m"
+            memory: "256Mi"
         volumeMounts:
         - name: html
           mountPath: /usr/share/nginx/html
@@ -57,6 +43,7 @@ spec:
       - name: html
         configMap:
           name: nginx-test-html
+      # Scheduling policies serão injetadas aqui
 ---
 apiVersion: v1
 kind: Service

@@ -70,18 +70,7 @@ make status
 # Resultado esperado: 1 pod por node, 4 total
 ```
 
-### Experimento 3: Pod Affinity
-
-```bash
-make clean
-./scripts/deploy-policy.sh pod-affinity
-
-make status
-
-# Resultado esperado: Concentrado em 1-2 nodes
-```
-
-### Experimento 4: Default (Baseline)
+### Experimento 3: Default (Baseline)
 
 ```bash
 make clean
@@ -196,7 +185,7 @@ kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090 -n moni
 
 Preparar:
 1. ✅ Lab funcionando
-2. ✅ 4 políticas testadas
+2. ✅ 3 políticas testadas
 3. ✅ Screenshots de cada uma
 4. ✅ EXPLORATION_LOG preenchido
 5. ✅ Lista de perguntas pro orientador

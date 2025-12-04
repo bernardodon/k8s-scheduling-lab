@@ -29,7 +29,7 @@ make status
 - **Cluster Kind:** 1 control-plane + 4 workers
 - **Monitoring:** Prometheus + Grafana (kube-prometheus-stack)
 - **Workload:** Nginx customizado com info do pod
-- **Políticas:** 4 estratégias de scheduling implementadas
+- **Políticas:** 3 estratégias de scheduling implementadas
 
 ## 🗂️ Estrutura
 
@@ -38,7 +38,7 @@ k8s-scheduling-lab/
 ├── cluster/              # Configuração do Kind
 ├── monitoring/           # Prometheus + Grafana
 ├── workloads/            # App de teste
-├── scheduling-policies/  # 4 políticas implementadas
+├── scheduling-policies/  # 3 políticas implementadas
 ├── dashboards/           # Dashboard Grafana exportado
 └── scripts/              # Scripts de deploy e coleta
 ```
@@ -50,7 +50,6 @@ k8s-scheduling-lab/
 | **Default** | Scheduler padrão | Baseline | Distribuição natural |
 | **Spreading** | TopologySpreadConstraints | Distribuir uniformemente | ~5 pods/node |
 | **Anti-Affinity** | Pod Anti-Affinity (hard) | Alta disponibilidade | 1 pod/node, máx 4 |
-| **Pod Affinity** | Pod Affinity (preferred) | Concentração | 1-2 nodes cheios |
 
 ## 🛠️ Comandos Úteis
 

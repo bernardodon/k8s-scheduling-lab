@@ -1,6 +1,6 @@
 # Políticas de Scheduling
 
-4 estratégias implementadas para comparação.
+3 estratégias implementadas para comparação.
 
 ## 📋 Visão Geral
 
@@ -9,7 +9,6 @@
 | **Default** | `1-default/` | Scheduler padrão | 20 | Distribuição natural |
 | **Spreading** | `2-spreading/` | TopologySpreadConstraints | 20 | ~5 pods/node |
 | **Anti-Affinity** | `3-anti-affinity/` | Pod Anti-Affinity (hard) | 4 | 1 pod/node |
-| **Pod Affinity** | `4-pod-affinity/` | Pod Affinity (preferred) | 20 | Concentração |
 
 ---
 
@@ -103,48 +102,6 @@ podAntiAffinity:
 
 ---
 
-## 4️⃣ Pod Affinity (Concentração)
-
-**Arquivo:** `4-pod-affinity/deployment.yaml`
-
-**Mecanismo:**
-```yaml
-podAffinity:
-  preferredDuringSchedulingIgnoredDuringExecution:
-  - weight: 100
-    podAffinityTerm:
-      labelSelector:
-        matchLabels:
-          policy: pod-affinity
-      topologyKey: kubernetes.io/hostname
-```
-
-**Comportamento:**
-- **SOFT preference:** Prefere nodes que já têm pods do app
-- `preferred` = tenta, mas não obriga
-- `weight: 100` = alta prioridade
-
-**Objetivo:**
-- Concentrar pods em poucos nodes
-- Otimização de custo (permite desligar nodes vazios)
-- Simula comportamento de binpacking
-
-**Resultado esperado:**
-- Pods concentrados em 1-2 nodes
-- Outros nodes ficam ociosos ou com poucos pods
-
-**Caso de uso real:**
-- Otimização de custo cloud
-- Consolidação de workloads
-- Preparação para scale-down
-
-**⚠️ Nota técnica:**
-- Não é binpacking real (MostAllocated plugin)
-- É simulação via Pod Affinity
-- Comportamento similar, mas não idêntico
-
----
-
 ## 🚀 Como Usar
 
 ```bash
@@ -170,13 +127,11 @@ make clean
 - **Default:** Natural (~4-6 por node)
 - **Spreading:** Uniforme (5 por node)
 - **Anti-Affinity:** Isolado (1 por node)
-- **Pod Affinity:** Concentrado (15+ em 1 node)
 
 ### Utilização de Nodes
 - **Default:** 4/4 nodes
 - **Spreading:** 4/4 nodes
 - **Anti-Affinity:** 4/4 nodes (forçado)
-- **Pod Affinity:** 1-2/4 nodes
 
 ### Trade-offs
 
@@ -184,7 +139,6 @@ make clean
 |----------|-----------|--------------|
 | **Spreading** | Balanceamento, resiliência | Usa todos os nodes (custo) |
 | **Anti-Affinity** | HA máxima | Limita escalabilidade |
-| **Pod Affinity** | Economia, consolidação | Blast radius alto |
 
 ---
 
