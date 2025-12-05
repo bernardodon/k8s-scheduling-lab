@@ -8,10 +8,10 @@ Waiting for deployment "fragment-filler" rollout to finish: 2 of 4 updated repli
 Waiting for deployment "fragment-filler" rollout to finish: 3 of 4 updated replicas are available...
 deployment "fragment-filler" successfully rolled out
 Fillers:
+  scheduling-lab-worker
   scheduling-lab-worker2
   scheduling-lab-worker2
   scheduling-lab-worker2
-  scheduling-lab-worker4
 deployment.apps/fragment-big created
 deployment "fragment-big" successfully rolled out
 Pod grande: Running

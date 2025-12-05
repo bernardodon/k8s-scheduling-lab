@@ -8,10 +8,10 @@ Waiting for deployment "fragment-filler" rollout to finish: 2 of 4 updated repli
 Waiting for deployment "fragment-filler" rollout to finish: 3 of 4 updated replicas are available...
 deployment "fragment-filler" successfully rolled out
 Fillers:
-  scheduling-lab-worker2
   scheduling-lab-worker4
-  scheduling-lab-worker
+  scheduling-lab-worker2
   scheduling-lab-worker3
+  scheduling-lab-worker
 deployment.apps/fragment-big created
 Waiting for deployment "fragment-big" rollout to finish: 0 of 1 updated replicas are available...
 error: timed out waiting for the condition
