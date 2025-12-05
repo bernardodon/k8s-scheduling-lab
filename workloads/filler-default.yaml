@@ -1,5 +1,5 @@
-# Spreading via constraint (TopologySpreadConstraints)
-# Força distribuição explícita entre nodes
+# Spreading via scoring (LeastAllocated)
+# Sem constraints - o scheduler usa a política padrão que prefere nodes menos ocupados
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,13 +16,6 @@ spec:
       labels:
         app: fragment-filler
     spec:
-      topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: ScheduleAnyway
-        labelSelector:
-          matchLabels:
-            app: fragment-filler
       containers:
       - name: filler
         image: nginx:alpine

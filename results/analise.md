@@ -1,32 +1,45 @@
-# Análise do Experimento
+# Análise
 
-## O que foi testado
+Criei um cluster Kind com 4 workers (~7 vCPU cada) pra testar como o scheduling afeta a capacidade real.
 
-Montei um cluster Kubernetes local com 4 nodes (usando Kind) pra testar como diferentes estratégias de scheduling afetam a capacidade real do cluster.
+O experimento: primeiro aplico 4 pods "fillers" de 2.5 vCPU, depois tento agendar um pod grande de 6 vCPU.
 
-A ideia era simples: criar 4 pods "fillers" de 2.5 vCPU cada, e depois tentar agendar um pod grande de 6 vCPU. A pergunta era: a ordem e distribuição dos pods menores afeta se o pod grande consegue rodar?
+## Os 3 cenários
 
-## Os dois cenários
+Todos testam a mesma coisa: como a distribuição dos fillers afeta se o pod grande consegue rodar. A diferença é o mecanismo usado pra conseguir essa distribuição.
 
-**Spreading (topologySpreadConstraints)**
+**Spreading via scoring (LeastAllocated)** - cenário "default"
 
-Forcei os fillers a se espalharem pelos nodes. O resultado foi que cada node ficou com aproximadamente 2.5 vCPU ocupados. Quando tentei agendar o pod grande, ele ficou Pending - nenhum node tinha 6 vCPU livres, mesmo que a soma total de CPU livre no cluster fosse mais que suficiente.
+Sem nenhum constraint. O scheduler usa a política padrão LeastAllocated, que dá mais pontos pra nodes menos ocupados. O efeito é spreading natural - cada filler vai pro node mais vazio no momento.
 
-**Binpacking (podAffinity)**
+**Spreading via constraint (TopologySpreadConstraints)** - cenário "spread"
 
-Usei afinidade pra fazer os fillers se agruparem nos mesmos nodes. Isso deixou pelo menos um node praticamente vazio. O pod grande conseguiu agendar sem problemas.
+Constraint explícito que força distribuição entre nodes. Diferente do scoring, aqui é uma regra declarativa: "maxSkew: 1" significa no máximo 1 pod de diferença entre nodes.
+
+**Binpacking via afinidade (PodAffinity)** - cenário "binpack"  
+
+Afinidade entre pods do mesmo app. Cada novo filler prefere ir pro node que já tem outros fillers. O efeito é concentração.
 
 ## Resultados
 
-| Estratégia | Pod Grande |
-|------------|------------|
-| Spreading  | Pending    |
-| Binpacking | Running    |
+```
+Default (spreading via scoring):
+  Fillers: worker, worker2, worker3, worker4
+  Pod grande: Pending
 
-## O que isso significa
+Spread (spreading via constraint):
+  Fillers: worker, worker2, worker3, worker4  
+  Pod grande: Pending
 
-O scheduler do Kubernetes olha node por node, não olha a capacidade total do cluster. Então mesmo tendo CPU "sobrando" quando você soma tudo, se essa capacidade estiver fragmentada entre vários nodes, pods grandes não conseguem agendar.
+Binpack (concentração via afinidade):
+  Fillers: worker2, worker2, worker2, worker4
+  Pod grande: Running
+```
 
-Isso é o que a literatura chama de "capacidade fantasma" - parece que tem recurso disponível, mas na prática não tem.
+## O que isso mostra
 
-Na prática, isso significa que a escolha entre spreading e binpacking não é só sobre resiliência vs custo. Também afeta se workloads maiores vão conseguir rodar ou não. Em clusters com mix de pods pequenos e grandes, binpacking tende a funcionar melhor pra evitar esse problema.
+Os dois primeiros cenários chegam no mesmo resultado (spreading) por mecanismos diferentes. Um é comportamento emergente do scoring, outro é constraint explícito.
+
+O total de CPU livre no cluster era o mesmo nos 3 casos (~18 vCPU). Mas no spreading essa capacidade estava fragmentada - ~4.5 vCPU em cada node. No binpacking, ficou concentrada - nodes inteiros livres.
+
+O scheduler do Kubernetes não olha capacidade agregada do cluster, olha node por node. Então capacidade "existe" mas não é utilizável por pods grandes. Isso é o que chamam de capacidade fantasma.

@@ -1,3 +1,5 @@
+# Concentração via afinidade (PodAffinity)
+# Pods preferem ir pra nodes que já têm outros pods do mesmo app
 apiVersion: apps/v1
 kind: Deployment
 metadata:

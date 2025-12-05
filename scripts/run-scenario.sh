@@ -2,7 +2,7 @@
 set -e
 
 DIR="$(dirname "$0")/.."
-MODE="${1:?Uso: $0 <spread|binpack>}"
+MODE="${1:?Uso: $0 <default|spread|binpack>}"
 
 echo "=== $MODE ==="
 

@@ -34,11 +34,20 @@ Isso executa `scripts/setup.sh`, que:
 make run
 ```
 
-Isso executa `scripts/suite.sh`, que roda os dois cenários e mostra o resumo.
+Isso executa `scripts/suite.sh`, que roda os três cenários e mostra o resumo.
 
 Ou rodar manualmente:
 
 ```bash
+# Cenário default (LeastAllocated)
+kubectl apply -f workloads/filler-default.yaml
+kubectl rollout status deployment/fragment-filler
+kubectl apply -f workloads/big.yaml
+kubectl get pods -l app=fragment-big   # Pending
+
+# Limpar
+kubectl delete deployment fragment-filler fragment-big
+
 # Cenário spreading
 kubectl apply -f workloads/filler-spread.yaml
 kubectl rollout status deployment/fragment-filler
@@ -69,10 +78,11 @@ count by (node) (kube_pod_info{namespace="default", pod=~"fragment-.*"})
 
 ## Resultados
 
-| Estratégia | Pod Grande | Por quê |
-|------------|------------|---------|
-| Spreading | **Pending** | Cada node tem ~5 vCPU livre, pod precisa de 6 |
-| Binpacking | **Running** | Fillers concentrados, um node fica livre |
+| Estratégia | Mecanismo | Pod Grande |
+|------------|-----------|------------|
+| Default | Spreading via scoring (LeastAllocated) | **Pending** |
+| Spread | Spreading via constraint (TopologySpreadConstraints) | **Pending** |
+| Binpack | Concentração via afinidade (PodAffinity) | **Running** |
 
 Ver `results/analise.md` para análise detalhada.
 
@@ -83,14 +93,16 @@ Ver `results/analise.md` para análise detalhada.
 ├── cluster.yaml              # Config Kind (1 control-plane + 4 workers)
 ├── scripts/
 │   ├── setup.sh              # Cria cluster + monitoring
-│   ├── suite.sh              # Roda ambos cenários
+│   ├── suite.sh              # Roda os três cenários
 │   ├── run-scenario.sh       # Roda um cenário
 │   └── cleanup.sh            # Remove workloads
 ├── workloads/
-│   ├── filler-spread.yaml    # 4 pods com topologySpreadConstraints
-│   ├── filler-binpack.yaml   # 4 pods com podAffinity
+│   ├── filler-default.yaml   # Sem constraints - spreading via LeastAllocated
+│   ├── filler-spread.yaml    # Spreading via TopologySpreadConstraints
+│   ├── filler-binpack.yaml   # Concentração via PodAffinity
 │   └── big.yaml              # 1 pod de 6 vCPU
 └── results/
+    ├── default.txt           # Log cenário default
     ├── spread.txt            # Log cenário spreading
     ├── binpack.txt           # Log cenário binpacking
     └── analise.md            # Análise dos resultados

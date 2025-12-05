@@ -1,6 +1,4 @@
-=== binpack ===
-deployment.apps "fragment-filler" deleted from default namespace
-deployment.apps "fragment-big" deleted from default namespace
+=== default ===
 deployment.apps/fragment-filler created
 Waiting for deployment "fragment-filler" rollout to finish: 0 of 4 updated replicas are available...
 Waiting for deployment "fragment-filler" rollout to finish: 1 of 4 updated replicas are available...
@@ -8,10 +6,11 @@ Waiting for deployment "fragment-filler" rollout to finish: 2 of 4 updated repli
 Waiting for deployment "fragment-filler" rollout to finish: 3 of 4 updated replicas are available...
 deployment "fragment-filler" successfully rolled out
 Fillers:
-  scheduling-lab-worker2
-  scheduling-lab-worker2
-  scheduling-lab-worker2
+  scheduling-lab-worker3
   scheduling-lab-worker4
+  scheduling-lab-worker2
+  scheduling-lab-worker
 deployment.apps/fragment-big created
-deployment "fragment-big" successfully rolled out
-Pod grande: Running
+Waiting for deployment "fragment-big" rollout to finish: 0 of 1 updated replicas are available...
+error: timed out waiting for the condition
+Pod grande: Pending
