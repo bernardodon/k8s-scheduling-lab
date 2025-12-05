@@ -1,126 +1,107 @@
 # K8s Scheduling Lab
 
-Experimento prático que demonstra como a estratégia de scheduling afeta a capacidade real de um cluster Kubernetes.
+Experimento que demonstra como a estratégia de scheduling afeta a capacidade real de um cluster Kubernetes.
 
-## Passo a passo
+## Início rápido
+
+```bash
+make setup    # Cria cluster + Prometheus/Grafana (~10min)
+make run      # Roda o experimento
+```
+
+## Passo a passo manual
 
 ### 1. Pré-requisitos
 
-```bash
-# Instalar Docker
-# https://docs.docker.com/get-docker/
+- Docker
+- [Kind](https://kind.sigs.k8s.io/) 
+- kubectl
+- Helm
 
-# Instalar Kind
-curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
-chmod +x ./kind
-sudo mv ./kind /usr/local/bin/kind
-
-# Instalar kubectl
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-chmod +x kubectl
-sudo mv kubectl /usr/local/bin/
-
-# Instalar Helm
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-```
-
-### 2. Criar o cluster
+### 2. Setup
 
 ```bash
-kind create cluster --config cluster.yaml
+make setup
 ```
 
-Isso cria um cluster com 1 control-plane e 4 workers.
+Isso executa `scripts/setup.sh`, que:
+- Cria cluster Kind com 4 workers
+- Instala Prometheus + Grafana
 
-### 3. Instalar monitoramento (opcional)
-
-```bash
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
-kubectl create namespace monitoring
-helm install prometheus prometheus-community/kube-prometheus-stack \
-  --namespace monitoring \
-  --set alertmanager.enabled=false \
-  --set grafana.adminPassword=admin
-```
-
-Para acessar o Grafana:
-```bash
-kubectl port-forward svc/prometheus-grafana 3000:80 -n monitoring
-# Acesse http://localhost:3000 (admin/admin)
-```
-
-### 4. Rodar o experimento
+### 3. Rodar experimento
 
 ```bash
 make run
 ```
 
-Ou manualmente:
+Isso executa `scripts/suite.sh`, que roda os dois cenários e mostra o resumo.
+
+Ou rodar manualmente:
 
 ```bash
-# Cenário 1: Spreading
+# Cenário spreading
 kubectl apply -f workloads/filler-spread.yaml
 kubectl rollout status deployment/fragment-filler
 kubectl apply -f workloads/big.yaml
-kubectl get pods -l app=fragment-big   # Deve mostrar Pending
+kubectl get pods -l app=fragment-big   # Pending
 
 # Limpar
 kubectl delete deployment fragment-filler fragment-big
 
-# Cenário 2: Binpacking  
+# Cenário binpacking
 kubectl apply -f workloads/filler-binpack.yaml
 kubectl rollout status deployment/fragment-filler
 kubectl apply -f workloads/big.yaml
-kubectl get pods -l app=fragment-big   # Deve mostrar Running
+kubectl get pods -l app=fragment-big   # Running
 ```
 
-### 5. Verificar resultados
+### 4. Ver Grafana (opcional)
 
 ```bash
-cat results/spread.txt    # Log do cenário spreading
-cat results/binpack.txt   # Log do cenário binpacking
-cat results/analise.md    # Análise dos resultados
+make grafana
+# Acesse http://localhost:3000 (admin/admin)
 ```
 
-## O problema: Capacidade Fantasma
+Query para ver pods por node:
+```promql
+count by (node) (kube_pod_info{namespace="default", pod=~"fragment-.*"})
+```
 
-O scheduler do Kubernetes avalia cada node individualmente. Um pod pode não agendar mesmo quando a soma de recursos livres é suficiente.
+## Resultados
 
-| Estratégia | Distribuição | Pod Grande | Motivo |
-|------------|--------------|------------|--------|
-| Spreading | 1 filler por node | **Pending** | Cada node tem ~5 vCPU livre (< 6) |
-| Binpacking | Fillers concentrados | **Running** | Um node fica com ~7 vCPU livre |
+| Estratégia | Pod Grande | Por quê |
+|------------|------------|---------|
+| Spreading | **Pending** | Cada node tem ~5 vCPU livre, pod precisa de 6 |
+| Binpacking | **Running** | Fillers concentrados, um node fica livre |
+
+Ver `results/analise.md` para análise detalhada.
 
 ## Estrutura
 
 ```
+├── Makefile
+├── cluster.yaml              # Config Kind (1 control-plane + 4 workers)
 ├── scripts/
-│   ├── setup.sh          # Cria cluster + monitoring
-│   ├── suite.sh          # Roda ambos cenários
-│   ├── run-scenario.sh   # Roda um cenário específico
-│   └── cleanup.sh        # Remove workloads
+│   ├── setup.sh              # Cria cluster + monitoring
+│   ├── suite.sh              # Roda ambos cenários
+│   ├── run-scenario.sh       # Roda um cenário
+│   └── cleanup.sh            # Remove workloads
 ├── workloads/
-│   ├── filler-spread.yaml    # Usa topologySpreadConstraints
-│   ├── filler-binpack.yaml   # Usa podAffinity
-│   └── big.yaml              # Pod de 6 vCPU
-├── results/
-│   └── analise.md        # Análise escrita
-└── cluster.yaml          # Config do Kind (4 workers)
+│   ├── filler-spread.yaml    # 4 pods com topologySpreadConstraints
+│   ├── filler-binpack.yaml   # 4 pods com podAffinity
+│   └── big.yaml              # 1 pod de 6 vCPU
+└── results/
+    ├── spread.txt            # Log cenário spreading
+    ├── binpack.txt           # Log cenário binpacking
+    └── analise.md            # Análise dos resultados
 ```
 
-## Comandos make
+## Comandos
 
 | Comando | Descrição |
 |---------|-----------|
-| `make setup` | Cria cluster + Prometheus/Grafana |
-| `make run` | Executa experimento completo |
-| `make clean` | Remove deployments de teste |
-| `make grafana` | Abre Grafana (localhost:3000) |
-| `make destroy` | Deleta o cluster |
-
-## Query Grafana
-
-```promql
-count by (node) (kube_pod_info{namespace="default", pod=~"fragment-.*"})
-```
+| `make setup` | Cria cluster + monitoring |
+| `make run` | Executa experimento |
+| `make clean` | Remove deployments |
+| `make grafana` | Abre Grafana |
+| `make destroy` | Deleta cluster |
