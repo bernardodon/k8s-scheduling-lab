@@ -1,1 +1,0 @@
-Screenshots vão aqui

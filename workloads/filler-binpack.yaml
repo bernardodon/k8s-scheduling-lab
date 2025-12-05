@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fragment-filler
+  labels:
+    app: fragment-filler
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: fragment-filler
+  template:
+    metadata:
+      labels:
+        app: fragment-filler
+    spec:
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: fragment-filler
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: filler
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "2500m"

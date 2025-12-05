@@ -1,0 +1,17 @@
+=== binpack ===
+deployment.apps "fragment-filler" deleted from default namespace
+deployment.apps "fragment-big" deleted from default namespace
+deployment.apps/fragment-filler created
+Waiting for deployment "fragment-filler" rollout to finish: 0 of 4 updated replicas are available...
+Waiting for deployment "fragment-filler" rollout to finish: 1 of 4 updated replicas are available...
+Waiting for deployment "fragment-filler" rollout to finish: 2 of 4 updated replicas are available...
+Waiting for deployment "fragment-filler" rollout to finish: 3 of 4 updated replicas are available...
+deployment "fragment-filler" successfully rolled out
+Fillers:
+  scheduling-lab-worker2
+  scheduling-lab-worker2
+  scheduling-lab-worker4
+  scheduling-lab-worker2
+deployment.apps/fragment-big created
+deployment "fragment-big" successfully rolled out
+Pod grande: Running

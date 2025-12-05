@@ -1,6 +1,3 @@
 #!/bin/bash
-
-echo "🧹 Limpando todos os workloads..."
-kubectl delete deployment,service,configmap -l app=nginx-test --ignore-not-found
-
-echo "✅ Limpo!"
+kubectl delete deployment fragment-filler fragment-big --ignore-not-found 2>/dev/null || true
+sleep 2

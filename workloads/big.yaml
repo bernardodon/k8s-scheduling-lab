@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fragment-big
+  labels:
+    app: fragment-big
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fragment-big
+  template:
+    metadata:
+      labels:
+        app: fragment-big
+    spec:
+      containers:
+      - name: big
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "6000m"
